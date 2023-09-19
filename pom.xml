@@ -14,6 +14,7 @@
         <module>routingms</module>
         <module>trackingms</module>
         <module>analyticsms</module>
+        <module>democlient</module>
     </modules>
 
     <properties>
