@@ -1,6 +1,7 @@
 package csci318.demo.cargotracker.analyticsms.applicationservice;
 
 import csci318.demo.cargotracker.shareddomain.events.CargoBookedEvent;
+import csci318.demo.cargotracker.shareddomain.events.CargoBookedEventData;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Grouped;
@@ -19,20 +20,18 @@ public class StreamProcessor {
     @Bean
     public Consumer<KStream<String, CargoBookedEvent>> process(){
         return inputStream -> {
-            KStream<String, Long> transformedStream = inputStream.map((x,y)-> KeyValue.pair("cargo booking",
-                            y.getCargoBookedEventData().getBookingAmount().longValue()));
 
-            //get "group by sum"
-           transformedStream.
-                   groupByKey(Grouped.with(Serdes.String(),Serdes.Long())).
-                    reduce(Long::sum).toStream().
-                   print(Printed.<String, Long>toSysOut().withLabel("GroupBy Sum"));
+            //get RUNNING total booking amounts by destination
+            KStream<String, Long> aggregatedStream = inputStream.map((key,value) -> {
+                String destCity = value.getCargoBookedEventData().getDestLocation();
+                Long bookAmount = value.getCargoBookedEventData().getBookingAmount().longValue();
+                  return KeyValue.pair(destCity, bookAmount); }).
+                    groupByKey(Grouped.with(Serdes.String(), Serdes.Long())).
+                    reduce(Long::sum).toStream();
 
-            //get "group by count"
-            //transformedStream.
-            //        groupBy((k,v)-> k).count().toStream();
-                            //.
-                    //print(Printed.<String, Long>toSysOut().withLabel("GroupBy Count"));
+           //just print the stream out to console
+           aggregatedStream.
+                   print(Printed.<String, Long>toSysOut().withLabel("Total booking amount by destination"));
         };
     }
 }
