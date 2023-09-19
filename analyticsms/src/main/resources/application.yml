@@ -1,0 +1,12 @@
+server.port: 8788
+spring.cloud.stream.bindings:
+  process-in-0:
+    destination: cargobookings
+spring.cloud.stream.kafka.streams.binder:
+  brokers: localhost:9092
+  serdeError: logAndContinue
+  configuration:
+    commit.interval.ms: 500
+    default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+    default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+    spring.json.value.default.type: csci318.demo.cargotracker.shareddomain.events.CargoBookedEvent

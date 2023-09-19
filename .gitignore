@@ -1,0 +1,40 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**
+!**/src/test/**
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+### VS Code ###
+.vscode/
+/.idea/
+/bookingms/src/main/resources/__application.Copy
+/handlingms/src/main/resources/__application.Copy
+/routingms/src/main/resources/__application.Copy
+/trackingms/src/main/resources/__application.Copy
+/bookingms/__pom.Copy
+/handlingms/__pom.Copy
+/routingms/__pom.Copy
+/trackingms/__pom.Copy
