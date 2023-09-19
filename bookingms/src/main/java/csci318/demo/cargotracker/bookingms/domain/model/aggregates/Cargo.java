@@ -66,7 +66,9 @@ public class Cargo extends AbstractAggregateRoot<Cargo> {
         addDomainEvent(new
                 CargoBookedEvent(
                         new CargoBookedEventData(bookingId.getBookingId(),
-                                this.bookingAmount.getBookingAmount())));
+                                bookCargoCommand.getBookingAmount(),
+                                bookCargoCommand.getOriginLocation(),
+                                bookCargoCommand.getDestLocation())));
     }
 
     public BookingId getBookingId() {

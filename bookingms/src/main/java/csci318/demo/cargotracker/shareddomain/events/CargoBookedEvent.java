@@ -17,4 +17,11 @@ public class CargoBookedEvent {
     public CargoBookedEventData getCargoBookedEventData(){
         return cargoBookedEventData;
     }
+
+    @Override
+    public String toString() {
+        return "CargoBookedEvent{" +
+                "cargoBookedEventData=" + cargoBookedEventData +
+                '}';
+    }
 }
