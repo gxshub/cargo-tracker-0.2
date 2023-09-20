@@ -11,6 +11,50 @@ Also for this demonstration purposes, a demo client is also created to send rand
 After setting up Apache Kafka (see below), run the **Booking MS**, **Analytics MS** and **Demo Client**, 
 and then monitor data in the consoles.
 
+The stream processing function is implemented in the `StreamProcessor` class of **Analytics MS**:
+```java
+@Configuration
+public class StreamProcessor {
+    public final static String BOOKING_STATE_STORE = "cargo-booking";
+
+    @Bean
+    public Consumer<KStream<String, CargoBookedEvent>> process() {
+        return inputStream -> {
+
+            //generate RUNNING total booking amounts by destination
+            KStream<String, Long> aggregatedStream = inputStream.map((key, value) -> {
+                        String destCity = value.getCargoBookedEventData().getDestLocation();
+                        Long bookAmount = value.getCargoBookedEventData().getBookingAmount().longValue();
+                        return KeyValue.pair(destCity, bookAmount);
+                    }).
+                    groupByKey(Grouped.with(Serdes.String(), Serdes.Long())).
+                    reduce(Long::sum).toStream();
+
+            //just print the stream out to console
+            aggregatedStream.
+                    print(Printed.<String, Long>toSysOut().withLabel("Total booking amount by destination"));
+        };
+    }
+}
+```
+The binding configuration for Kafka is defined the a `.yml` file (which is similar to the `.properties` file but more readable):
+```yaml
+server.port: 8788
+spring.cloud.stream.bindings:
+  process-in-0:
+    destination: cargobookings
+spring.cloud.stream.kafka.streams.binder:
+  brokers: localhost:9092
+  serdeError: logAndContinue
+  configuration:
+    commit.interval.ms: 500
+    default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+    default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+    spring.json.value.default.type: csci318.demo.cargotracker.shareddomain.events.CargoBookedEvent
+```
+***NOTE (!)*** The function name `process()` in the above java class must match to the string `"process-in-0"` in the above YAML file
+(e.g., if the function name is `whatevernameyoulike()` then the corresponding string is `"whatevernameyoulike-in-0"`).
+
 ## Apache Kafka Setup
 This Spring Boot project uses Apache Kafka as a messaging platform.
 To run this project, you need to set up Kafka first.
