@@ -1,7 +1,7 @@
 package csci318.demo.cargotracker.bookingms.domain.model.valueobjects;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 
 /**
  * Domain model representation of the Booking Amount for a new Cargo.

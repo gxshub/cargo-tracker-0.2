@@ -2,8 +2,8 @@ package csci318.demo.cargotracker.bookingms.domain.model.valueobjects;
 
 import csci318.demo.cargotracker.bookingms.domain.model.entities.Location;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import java.util.Date;
 
 @Entity

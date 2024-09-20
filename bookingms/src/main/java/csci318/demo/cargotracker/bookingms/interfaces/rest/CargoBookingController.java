@@ -1,7 +1,7 @@
 package csci318.demo.cargotracker.bookingms.interfaces.rest;
 
-import csci318.demo.cargotracker.bookingms.application.internal.commandservices.CargoBookingCommandService;
-import csci318.demo.cargotracker.bookingms.application.internal.queryservices.CargoBookingQueryService;
+import csci318.demo.cargotracker.bookingms.application.commandservices.CargoBookingCommandService;
+import csci318.demo.cargotracker.bookingms.application.queryservices.CargoBookingQueryService;
 import csci318.demo.cargotracker.bookingms.domain.model.aggregates.BookingId;
 import csci318.demo.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import csci318.demo.cargotracker.bookingms.interfaces.rest.dto.BookCargoResource;

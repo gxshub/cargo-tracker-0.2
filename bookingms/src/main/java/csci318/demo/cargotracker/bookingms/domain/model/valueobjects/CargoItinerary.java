@@ -1,7 +1,7 @@
 package csci318.demo.cargotracker.bookingms.domain.model.valueobjects;
 
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Collections;
 import java.util.List;
 

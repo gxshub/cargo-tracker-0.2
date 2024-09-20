@@ -1,6 +1,6 @@
 package csci318.demo.cargotracker.bookingms.domain.model.aggregates;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import csci318.demo.cargotracker.bookingms.domain.model.commands.BookCargoCommand;
 import csci318.demo.cargotracker.bookingms.domain.model.commands.RouteCargoCommand;

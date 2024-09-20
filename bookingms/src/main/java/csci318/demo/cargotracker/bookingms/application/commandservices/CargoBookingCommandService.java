@@ -1,6 +1,6 @@
-package csci318.demo.cargotracker.bookingms.application.internal.commandservices;
+package csci318.demo.cargotracker.bookingms.application.commandservices;
 
-import csci318.demo.cargotracker.bookingms.application.internal.outboundservices.acl.ExternalCargoRoutingService;
+import csci318.demo.cargotracker.bookingms.application.outboundservices.acl.ExternalCargoRoutingService;
 import csci318.demo.cargotracker.bookingms.domain.model.aggregates.BookingId;
 import csci318.demo.cargotracker.bookingms.domain.model.aggregates.Cargo;
 import csci318.demo.cargotracker.bookingms.domain.model.commands.BookCargoCommand;

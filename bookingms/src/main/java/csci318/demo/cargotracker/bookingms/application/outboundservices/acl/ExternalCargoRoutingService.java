@@ -1,4 +1,4 @@
-package csci318.demo.cargotracker.bookingms.application.internal.outboundservices.acl;
+package csci318.demo.cargotracker.bookingms.application.outboundservices.acl;
 
 import csci318.demo.cargotracker.bookingms.domain.model.valueobjects.CargoItinerary;
 import csci318.demo.cargotracker.bookingms.domain.model.valueobjects.Leg;

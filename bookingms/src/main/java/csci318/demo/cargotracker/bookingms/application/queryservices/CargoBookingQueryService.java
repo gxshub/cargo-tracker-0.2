@@ -1,4 +1,4 @@
-package csci318.demo.cargotracker.bookingms.application.internal.queryservices;
+package csci318.demo.cargotracker.bookingms.application.queryservices;
 
 
 import csci318.demo.cargotracker.bookingms.domain.model.aggregates.BookingId;

@@ -1,7 +1,7 @@
 package csci318.demo.cargotracker.bookingms.domain.model.entities;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 
 /**
  * Location class represented by a unique 5-diigit UN Location code.

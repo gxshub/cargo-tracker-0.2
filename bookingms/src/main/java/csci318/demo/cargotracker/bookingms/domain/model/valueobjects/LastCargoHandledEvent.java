@@ -1,8 +1,8 @@
 package csci318.demo.cargotracker.bookingms.domain.model.valueobjects;
 
 
-import javax.persistence.Embeddable;
-import javax.persistence.Transient;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Transient;
 
 
 @Embeddable

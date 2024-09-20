@@ -1,5 +1,83 @@
 # Cargo Tracker 0.2 (Stream Processing)
 
+## Apache Kafka Setup
+This Spring Boot project uses Apache Kafka as a messaging platform.
+To run this project, you need to set up Kafka first.
+
+#### Linux and MacOS
+Download a **binary package** of Apache Kafka (e.g., `kafka_2.13-3.7.0.tgz`) from
+[https://kafka.apache.org/downloads](https://kafka.apache.org/downloads)
+and upzip it.
+In the Terminal, `cd` to the unzip folder, and start Kakfa with the following commands (each in a separate Terminal session):
+```bash
+./bin/zookeeper-server-start.sh ./config/zookeeper.properties
+```
+```bash
+./bin/kafka-server-start.sh ./config/server.properties
+```
+
+#### Windows
+Download a **binary package** of Apache Kafka (e.g., `kafka_2.13-3.7.0.tgz`) from
+[https://kafka.apache.org/downloads](https://kafka.apache.org/downloads)
+and unzip it to a directory, e.g., `C:\kafka`&mdash;Windows does not like a complex path name (!).
+
+<!--
+In the configuration file `C:\kafka\config\zookeeper.properties`, comment out the line `"dataDir=/tmp/zookeeper"`. In `C:\kafka\config\server.properties`, change the line `"log.dirs=/tmp/kafka-logs"` to `"log.dirs=.kafka-logs"`.
+-->
+
+Use the following two commands in the Windows CMD (one in each window) to start Kafka:
+```bash
+C:\kafka\bin\windows\zookeeper-server-start.bat C:\kafka\config\zookeeper.properties
+```
+```bash
+C:\kafka\bin\windows\kafka-server-start.bat C:\kafka\config\server.properties
+```
+
+### Run the Application ##
+Book and check cargoes with the following command:
+(Linux/MacOS)
+```shell
+curl -X POST -H "Content-Type:application/json" -d '{"bookingAmount":20,"originLocation":"HK","destLocation":"NY","destArrivalDeadline":"2010-08-01"}' http://localhost:8787/cargobooking
+```
+```shell
+curl -X GET -H "Content-Type:application/json" http://localhost:8787/cargobooking/findAllBookingIds
+```
+(windows)
+```shell
+curl -X POST -H "Content-Type:application/json" -d "{\"bookingAmount\":20,\"originLocation\":\"HK\",\"destLocation\":\"NY\",\"destArrivalDeadline\":\"2010-08-01\"}" http://localhost:8787/cargobooking
+```
+```shell
+curl -X GET -H "Content-Type:application/json" http://localhost:8787/cargobooking/findAllBookingIds
+```
+
+### View Kafka Topics
+After running the `bookingms`'s main class, check the Kafka topics with the following command:
+
+(Linux/MacOS)
+```shell
+./bin/kafka-topics.sh --bootstrap-server=localhost:9092 --list
+```
+(Windows)
+```shell
+C:\kafka\bin\windows\kafka-topics.bat --bootstrap-server=localhost:9092 --list
+```
+You should see a topic name `cargobookings`. You can read data in the `cargobookings` topic:
+
+(Linux/MacOS)
+```shell
+./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic cargobookings --from-beginning
+```
+(Windows)
+```shell
+c:\kafka\bin\windows\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic cargobookings --from-beginning
+```
+
+### Trouble Shooting
+If you cannot start Kafka, try to clean up data in the Kafka topics to start over.
+For this purpose, in Linux/MacOS, delete the folders `/tmp/zookeeper`, `/tmp/kafka-logs`
+and `/tmp/kafka-streams` (if any). In Windows, delete the folders `C:\tmp\zookeeper`,
+`C:\tmp\kafka-logs` and `C:\kafka\kafka-streams` (if any).
+
 This project is an extension to [CargoTracker 0.1](https://github.com/gxshub/cargo-tracker-0.1/tree/v2).
 A new _stream processing_ microservice **Analytics** is implemented. 
 It creates a stream of the total cargo booking amounts by destination
