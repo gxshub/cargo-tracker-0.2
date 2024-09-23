@@ -78,12 +78,11 @@ For this purpose, in Linux/MacOS, delete the folders `/tmp/zookeeper`, `/tmp/kaf
 and `/tmp/kafka-streams` (if any). In Windows, delete the folders `C:\tmp\zookeeper`,
 `C:\tmp\kafka-logs` and `C:\kafka\kafka-streams` (if any).
 
-## Stream Processing Microservices
+## Stream Processing
 
 This project is an extension to [CargoTracker 0.1](https://github.com/gxshub/cargo-tracker-0.1/tree/v2).
-A new _stream processing_ microservice **Analytics** is implemented. 
-It creates a stream of the total cargo booking amounts by destination
-(namely, a "_SUM with Group By_" SQL-like query).
+A new service named **Analytics MS** is implemented, which processes the
+booking event stream and enables real-time queries.
 
 <!-- 
 To enable this stream-based query, the [`CargoBookedEvenData`](./bookingms/src/main/java/csci318/demo/cargotracker/shareddomain/events/CargoBookedEventData.java) class is enriched with more attributes (compared with the same event in version [0.1](https://github.com/gxshub/cargo-tracker-0.1/tree/v2)).
@@ -93,48 +92,93 @@ Also for demonstration purposes, a demo client is created to send random booking
 <!-- After setting up Apache Kafka (see below for [instructions](./README.md#apache-kafka-setup)), run the **Booking MS**, **Analytics MS** and **Demo Client**, 
 and then monitor the data shown in the consoles.-->
 
-The stream processing function is implemented in the `StreamProcessor` class of **Analytics MS**:
+The stream processing function is implemented in the [`StreamProcessor`](./analyticsms/src/main/java/csci318/demo/cargotracker/analyticsms/applicationservice/StreamProcessor.java) class of **Analytics MS**.
+The processing logic can be expressed as "the total cargo booking amounts by destination (city)", 
+namely, a "_SUM with Group By_" SQL-like query.
+The aggregation results are persistent (or "materialized") in a state store (in particular, a KeyValueStore).
 ```java
 @Configuration
 public class StreamProcessor {
-    public final static String BOOKING_STATE_STORE = "cargo-booking";
+    public final static String TOTAL_BOOKINGS = "total-bookings";
 
     @Bean
     public Consumer<KStream<String, CargoBookedEvent>> process() {
         return inputStream -> {
 
             //generate RUNNING total booking amounts by destination
-            KStream<String, Long> aggregatedStream = inputStream.map((key, value) -> {
+            KTable<String, Long> totalBookings = inputStream.map((key, value) -> {
                         String destCity = value.getCargoBookedEventData().getDestLocation();
                         Long bookAmount = value.getCargoBookedEventData().getBookingAmount().longValue();
                         return KeyValue.pair(destCity, bookAmount);
                     }).
                     groupByKey(Grouped.with(Serdes.String(), Serdes.Long())).
-                    reduce(Long::sum).toStream();
+                    reduce(Long::sum,
+                            Materialized.<String, Long, KeyValueStore<Bytes, byte[]>>as(TOTAL_BOOKINGS).
+                                    withKeySerde(Serdes.String()).withValueSerde(Serdes.Long()));
 
-            //just print the stream out to console
-            aggregatedStream.
-                    print(Printed.<String, Long>toSysOut().withLabel("Total booking amount by destination"));
+            // print data to console (not part of the stream processing logic)
+            totalBookings.toStream().
+                    print(Printed.<String, Long>toSysOut().withLabel("Total bookings by city"));
         };
     }
 }
 ```
-The Kafka binding configuration for **Analytics MS** is defined in the YAML format, i.e., [`application.yml`](./analyticsms/src/main/resources/application.yml) file (which is similar to the previously used `application.properties` file but more readable):
-```yaml
-server.port: 8788
-spring.cloud.stream.bindings:
-  process-in-0:
-    destination: cargobookings
-spring.cloud.stream.kafka.streams.binder:
-  brokers: localhost:9092
-  serdeError: logAndContinue
-  configuration:
-    commit.interval.ms: 500
-    default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-    default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
-    spring.json.value.default.type: csci318.demo.cargotracker.shareddomain.events.CargoBookedEvent
+
+The Kafka binding configuration for **Analytics MS** is defined in the `application.properties` file:
+```properties
+server.port=8788
+spring.cloud.function.definition=process
+spring.cloud.stream.bindings.process-in-0.destination=cargobookings
+spring.cloud.stream.kafka.binder.brokers=localhost:9092
+spring.cloud.stream.kafka.streams.binder.configuration.commit.interval.ms=500
 ```
-***Note (IMPORTANT!)*** The function name `process()` in the above java class `StreamProcessor` must match the string `"process-in-0"` in the above YAML file
-(e.g., if the function name is `whatevernameyoulike()` then the corresponding string is `"whatevernameyoulike-in-0"`).
+The function `process()` in the Java class `StreamProcessor` must match the strings `"process"` and `"process-in-0"` in `application.properties`
+(e.g., if the function is `whatevernameyoulike()` then the corresponding strings are `"whatevernameyoulike"` and `"whatevernameyoulike-in-0"`).
 
+### Interactive Query at Real Time
 
+The state store (i.e., KeyValueStore) is used for interactive queries on real-time analytics data.
+The code is implemented in the 
+[`InteractiveQuery`](./analyticsms/src/main/java/csci318/demo/cargotracker/analyticsms/applicationservice/InteractiveQuery.java) class:
+```java
+@Service
+public class InteractiveQuery {
+
+    private final InteractiveQueryService interactiveQueryService;
+
+    public InteractiveQuery(InteractiveQueryService interactiveQueryService) {
+        this.interactiveQueryService = interactiveQueryService;
+    }
+
+    public List<BookingsByCity> getAllBookingsByCity() {
+        List<BookingsByCity> allBookingsByCity = new ArrayList<>();
+        KeyValueIterator<String, Long> all = getTotalBookingsKSStore().all();
+        while (all.hasNext()) {
+            KeyValue<String, Long> ks = all.next();
+            BookingsByCity quantityPerCity = new BookingsByCity();
+            quantityPerCity.setCity(ks.key);
+            quantityPerCity.setBookingQuantity(ks.value);
+            allBookingsByCity.add(quantityPerCity);
+        }
+        return allBookingsByCity;
+    }
+
+    private ReadOnlyKeyValueStore<String, Long> getTotalBookingsKSStore() {
+        return this.interactiveQueryService.getQueryableStore(StreamProcessor.TOTAL_BOOKINGS,
+                QueryableStoreTypes.keyValueStore());
+    }
+}
+```
+
+#### REST Request for Interactive Query
+
+Run the DemoClient and get the changing query results: 
+
+(Linux/MacOS)
+```shell
+curl -X GET -H "Content-Type:application/json" http://localhost:8788/queries/findAllBookingsByCity
+```
+(windows)
+```shell
+curl -X GET -H "Content-Type:application/json" http://localhost:8788/queries/findAllBookingsByCity
+```
